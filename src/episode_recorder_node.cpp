@@ -279,7 +279,7 @@ EpisodeRecorderNode::on_configure(const rclcpp_lifecycle::State &)
     // SUCCEEDED, which downstream reads as an unintended max-duration stop.
     // The name is rcl_action's fixed convention: <action>/_action/cancel_goal.
     action_cancel_client_ = create_client<action_msgs::srv::CancelGoal>(
-      "record_episode/_action/cancel_goal", rmw_qos_profile_services_default,
+      "record_episode/_action/cancel_goal", rclcpp::ServicesQoS(),
       services_cbg_);
 
     // Foxglove and similar clients cannot reach the hidden _action/* services,
@@ -288,19 +288,19 @@ EpisodeRecorderNode::on_configure(const rclcpp_lifecycle::State &)
       "~/start_recording",
       std::bind(&EpisodeRecorderNode::on_start_service, this, std::placeholders::_1,
         std::placeholders::_2),
-      rmw_qos_profile_services_default, services_cbg_);
+      rclcpp::ServicesQoS(), services_cbg_);
 
     cancel_service_ = create_service<Trigger>(
       "~/cancel_recording",
       std::bind(&EpisodeRecorderNode::on_cancel_service, this, std::placeholders::_1,
         std::placeholders::_2),
-      rmw_qos_profile_services_default, services_cbg_);
+      rclcpp::ServicesQoS(), services_cbg_);
 
     delete_last_bag_service_ = create_service<Trigger>(
       "~/delete_last_bag",
       std::bind(&EpisodeRecorderNode::on_delete_last_bag_service, this, std::placeholders::_1,
         std::placeholders::_2),
-      rmw_qos_profile_services_default, services_cbg_);
+      rclcpp::ServicesQoS(), services_cbg_);
 
     RCLCPP_INFO(
       get_logger(), "Configured: robot_type=%s, topics=%zu",

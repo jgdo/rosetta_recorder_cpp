@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.16)
 project(rosetta_recorder_cpp)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -28,19 +28,6 @@ find_package(yaml-cpp REQUIRED)
 # The node lives in a library so the tests can link it directly; the executable
 # is just main().
 # ---------------------------------------------------------------------------
-set(ROSETTA_RECORDER_DEPS
-  action_msgs
-  rclcpp
-  rclcpp_action
-  rclcpp_lifecycle
-  lifecycle_msgs
-  rosbag2_cpp
-  rosbag2_storage
-  std_msgs
-  std_srvs
-  rosetta_interfaces
-)
-
 add_library(rosetta_recorder_core
   src/episode_recorder_node.cpp
   src/contract.cpp
@@ -50,8 +37,19 @@ target_include_directories(rosetta_recorder_core PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 target_compile_features(rosetta_recorder_core PUBLIC cxx_std_17)
-ament_target_dependencies(rosetta_recorder_core ${ROSETTA_RECORDER_DEPS})
-target_link_libraries(rosetta_recorder_core yaml-cpp)
+target_link_libraries(rosetta_recorder_core PUBLIC
+  action_msgs::action_msgs
+  rclcpp::rclcpp
+  rclcpp_action::rclcpp_action
+  rclcpp_lifecycle::rclcpp_lifecycle
+  lifecycle_msgs::lifecycle_msgs
+  rosbag2_cpp::rosbag2_cpp
+  rosbag2_storage::rosbag2_storage
+  std_msgs::std_msgs
+  std_srvs::std_srvs
+  rosetta_interfaces::rosetta_interfaces
+  yaml-cpp
+)
 
 # rosbag2 made two breaking struct changes in Jazzy, both on the same distro
 # boundary. TopicMetadata: offered_qos_profiles went from a YAML string to a
@@ -81,7 +79,6 @@ endif()
 add_executable(episode_recorder_node src/main.cpp)
 target_compile_features(episode_recorder_node PUBLIC cxx_std_17)
 target_link_libraries(episode_recorder_node rosetta_recorder_core)
-ament_target_dependencies(episode_recorder_node rclcpp)
 
 # Same main, no lifecycle manager needed: hides the lifecycle services and
 # configures and activates itself at startup.
@@ -89,7 +86,6 @@ add_executable(episode_recorder_node_no_lifecycle src/main.cpp)
 target_compile_features(episode_recorder_node_no_lifecycle PUBLIC cxx_std_17)
 target_compile_definitions(episode_recorder_node_no_lifecycle PRIVATE ROSETTA_RECORDER_NO_LIFECYCLE=1)
 target_link_libraries(episode_recorder_node_no_lifecycle rosetta_recorder_core)
-ament_target_dependencies(episode_recorder_node_no_lifecycle rclcpp)
 
 install(TARGETS rosetta_recorder_core
   ARCHIVE DESTINATION lib
